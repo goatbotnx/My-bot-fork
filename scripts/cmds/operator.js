@@ -3,11 +3,11 @@ const { writeFileSync } = require("fs-extra");
 
 module.exports = {
 config: {
-name: "admin",
+name: "operator",
 version: "1.5",
 author: "T A N J I L 🎀",
 countDown: 5,
-role: 0, //
+role: 2, //
 shortDescription: {
 vi: "Thêm, xóa, sửa quyền admin",
 en: "Add, remove, edit admin role"
