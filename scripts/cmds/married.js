@@ -1,73 +1,119 @@
+onst fs = require("fs-extra");
+const Canvas = require("canvas");
+const path = require("path");
+
 module.exports = {
-		config: {
-				name: "married",
-				aliases: ["married"],
-				version: "1.0",
-				author: "kivv",
-				countDown: 5,
-				role: 0,
-				shortDescription: "get a wife",
-				longDescription: "",
-				category: "married",
-				guide: "{@mention}"
-		}, 
+  config: {
+    name: "marry",
+    aliases: ["married", "biya", "engage"], 
+    version: "3.7",
+    author: "xalman",
+    countDown: 5,
+    role: 0,
+    shortDescription: "Propose with custom image",
+    longDescription: "Generate a propose image with avatars perfectly placed over characters’ heads (swapped).",
+    category: "fun",
+    guide: "{pn} @mention"
+  },
 
-		onLoad: async function () {
-				const { resolve } = require ("path");
-				const { existsSync, mkdirSync } = require ("fs-extra");
-				const { downloadFile } = global.utils;
-				const dirMaterial = __dirname + `/cache/canvas/`;
-				const path = resolve(__dirname, 'cache/canvas', 'marriedv5.png');
-				if (!existsSync(dirMaterial + "canvas")) mkdirSync(dirMaterial, { recursive: true });
-				if (!existsSync(path)) await downloadFile("https://i.ibb.co/mhxtgwm/49be174dafdc259030f70b1c57fa1c13.jpg", path);
-		},
+  onStart: async function ({ message, event, usersData }) {
+    const mention = Object.keys(event.mentions);
+    if (mention.length === 0)
+      return message.reply("❗ দয়া করে কাউকে mention করো।");
 
-		circle: async function (image) {
-				const jimp = require("jimp");
-				image = await jimp.read(image);
-				image.circle();
-				return await image.getBufferAsync("image/png");
-		},
+    const senderID = event.senderID;
+    const mentionedID = mention[0];
 
-		makeImage: async function ({ one, two }) {
-				const fs = require ("fs-extra");
-				const path = require ("path");
-				const axios = require ("axios"); 
-				const jimp = require ("jimp");
-				const __root = path.resolve(__dirname, "cache", "canvas");
+    try {
+      // 🧑‍🤝‍🧑 নাম বের করা
+      const nameSender = await usersData.getName(senderID);
+      const nameMentioned = await usersData.getName(mentionedID);
 
-				let batgiam_img = await jimp.read(__root + "/marriedv5.png");
-				let pathImg = __root + `/batman${one}_${two}.png`;
-				let avatarOne = __root + `/avt_${one}.png`;
-				let avatarTwo = __root + `/avt_${two}.png`;
+      // 🟢 Avatar লিংক
+      const avatarSender =
+        (await usersData.getAvatarUrl(senderID)) ||
+        `https://graph.facebook.com/${senderID}/picture?width=512&height=512`;
+      const avatarMentioned =
+        (await usersData.getAvatarUrl(mentionedID)) ||
+        `https://graph.facebook.com/${mentionedID}/picture?width=512&height=512`;
 
-				let getAvatarOne = (await axios.get(`https://graph.facebook.com/${one}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`, { responseType: 'arraybuffer' })).data;
-				fs.writeFileSync(avatarOne, Buffer.from(getAvatarOne, 'utf-8'));
+      // 🖼️ ছবি লোড
+      const [avatarImgSender, avatarImgMentioned, bg] = await Promise.all([
+        Canvas.loadImage(avatarSender),
+        Canvas.loadImage(avatarMentioned),
+        Canvas.loadImage("https://i.postimg.cc/VvjW9DwJ/images-8.jpg")
+      ]);
 
-				let getAvatarTwo = (await axios.get(`https://graph.facebook.com/${two}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`, { responseType: 'arraybuffer' })).data;
-				fs.writeFileSync(avatarTwo, Buffer.from(getAvatarTwo, 'utf-8'));
+      // 🎨 ক্যানভাস সেটআপ
+      const canvasWidth = 1280;
+      const canvasHeight = 1280;
+      const canvas = Canvas.createCanvas(canvasWidth, canvasHeight);
+      const ctx = canvas.getContext("2d");
 
-				let circleOne = await jimp.read(await this.circle(avatarOne));
-				let circleTwo = await jimp.read(await this.circle(avatarTwo));
-				batgiam_img.composite(circleOne.resize(130, 130), 300, 150).composite(circleTwo.resize(130, 130), 170, 230);
+      // ব্যাকগ্রাউন্ড আঁকা
+      ctx.drawImage(bg, 0, 0, canvasWidth, canvasHeight);
 
-				let raw = await batgiam_img.getBufferAsync("image/png");
+      // 👥 Avatar সেটিং
+      const avatarSize = Math.floor(canvasWidth * 0.11); // ছোট আকার
+      const girlHead = { x: 470, y: 310 }; // বাম চরিত্র
+      const boyHead = { x: 690, y: 200 };  // ডান চরিত্র
 
-				fs.writeFileSync(pathImg, raw);
-				fs.unlinkSync(avatarOne);
-				fs.unlinkSync(avatarTwo);
+      // 💙 Mentioned user avatar (left side)
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(
+        girlHead.x + avatarSize / 2,
+        girlHead.y + avatarSize / 2,
+        avatarSize / 2,
+        0,
+        Math.PI * 2
+      );
+      ctx.clip();
+      ctx.drawImage(avatarImgMentioned, girlHead.x, girlHead.y, avatarSize, avatarSize);
+      ctx.restore();
 
-				return pathImg;
-		},
+      // ❤️ Sender avatar (right side)
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(
+        boyHead.x + avatarSize / 2,
+        boyHead.y + avatarSize / 2,
+        avatarSize / 2,
+        0,
+        Math.PI * 2
+      );
+      ctx.clip();
+      ctx.drawImage(avatarImgSender, boyHead.x, boyHead.y, avatarSize, avatarSize);
+      ctx.restore();
 
-		onStart: async function ({ event, api, args }) { 
-				const fs = require ("fs-extra");
-				const { threadID, messageID, senderID } = event;
-				const mention = Object.keys(event.mentions);
-				if (!mention[0]) return api.sendMessage("Please mention 1 person.", threadID, messageID);
-				else {
-						const one = senderID, two = mention[0];
-						return this.makeImage({ one, two }).then(path => api.sendMessage({ body: "", attachment: fs.createReadStream(path) }, threadID, () => fs.unlinkSync(path), messageID));
-				}
-		}
+      // 💾 ছবি সেভ
+      const tmpDir = path.join(__dirname, "tmp");
+      await fs.ensureDir(tmpDir);
+      const imgPath = path.join(tmpDir, `${senderID}_${mentionedID}_marry.png`);
+      await fs.writeFile(imgPath, canvas.toBuffer("image/png"));
+
+      // 💬 টেক্সট তৈরি
+      const text =
+        senderID === mentionedID
+          ? "নিজেকেই প্রপোজ করলে? 😂❤️"
+          : `💍 ${nameSender} প্রপোজ করেছে ${nameMentioned}-কে 🥰❤️`;
+
+      // ✉️ পাঠানো
+      await message.reply(
+        {
+          body: text,
+          attachment: fs.createReadStream(imgPath)
+        },
+        () => fs.unlink(imgPath).catch(() => {}) // ফাইল ডিলিট
+      );
+
+      // 🧹 মেমরি ক্লিন
+      canvas.width = canvas.height = 0;
+      global.gc && global.gc();
+
+    } catch (err) {
+      console.error("❌ Error in marry command:", err);
+      message.reply(`⚠️ কোনো সমস্যা হয়েছে!\n${err.message}`);
+    }
+  }
 };
