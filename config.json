@@ -3,8 +3,8 @@
     "secureRootCodeV2": "MTAwMDgxMzMwMzcyMDk4"},
   "autoInjectUID": true,
   "facebookAccount": {
-    "email": "xadikasara@gmail.com",
-    "password": "botx210",
+    "email": "chitronbhattacharjee35@gmail.com",
+    "password": "chitron@2448766",
     "2FASecret": "",
     "i_user": null,
     "proxy": null,
@@ -22,14 +22,14 @@
   
   "adminBot": [
     "100081088184521",
-    "100066867630344"
+    "61583129938292"
   ],
   "whiteListMode": {
     "enable": false,
     "whiteListIds": [],
     "notes": "if you enable this feature, only the ids in the whiteListIds section can use the bot"
   },
-  "nickNameBot": "‌♡your baby♡",
+  "nickNameBot": "‌♡junu baby by [nx]♡",
   "prefix": "/",
   "database": {
     "type": "mongodb",
