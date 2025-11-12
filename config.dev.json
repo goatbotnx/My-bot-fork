@@ -29,7 +29,7 @@
     "whiteListIds": [],
     "notes": "if you enable this feature, only the ids in the whiteListIds section can use the bot"
   },
-  "nickNameBot": "‌♡junu baby by [nx]♡",
+  "nickNameBot": "‌♡your baby by [nx]♡",
   "prefix": "/",
   "database": {
     "type": "mongodb",
