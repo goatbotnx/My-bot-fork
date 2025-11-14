@@ -19,7 +19,7 @@ module.exports = {
     try {
       // Function to simulate loading
       const sendLoading = async () => {
-        for (let i = 0; i <= 100; i += 25) {
+        for (let i = 22; i <= 100; i += 37) {
           const loadingBar = "█".repeat(Math.floor(i / 10)) + "░".repeat(10 - Math.floor(i / 10));
           const text = `🔄 Loading: [${loadingBar}] ${i}%`;
           await api.sendMessage(text, event.threadID); // always send new message, safe for Messenger
