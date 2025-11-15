@@ -1,7 +1,7 @@
 module.exports = {
   config: {
     name: "admin",
-    aliases: [],
+    aliases: "gcadmin",
     version: "1.0",
     author: "〲T A N J I L ツ",
     role: 1,
